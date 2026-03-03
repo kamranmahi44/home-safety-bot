@@ -50,6 +50,11 @@ h2 {
     color:#ffffff;
 }
 
+.typing {
+    color:#888;
+    font-style:italic;
+}
+
 .input-area {
     margin-bottom:30px;
 }
@@ -94,7 +99,13 @@ function sendMessage(){
 
     let chat = document.getElementById("chat");
 
+    // show user message
     chat.innerHTML += "<div class='message user'><b>You:</b> " + msg + "</div>";
+    document.getElementById("message").value="";
+
+    // add typing indicator
+    chat.innerHTML += "<div class='message typing' id='typing'><b>Bot:</b> typing...</div>";
+    chat.scrollTop = chat.scrollHeight;
 
     fetch("/chat", {
         method:"POST",
@@ -103,11 +114,14 @@ function sendMessage(){
     })
     .then(res => res.json())
     .then(data=>{
+        // remove typing
+        let typeElem = document.getElementById("typing");
+        if(typeElem) typeElem.remove();
+
+        // bot response
         chat.innerHTML += "<div class='message bot'><b>Bot:</b> " + data.reply + "</div>";
         chat.scrollTop = chat.scrollHeight;
     });
-
-    document.getElementById("message").value="";
 }
 </script>
 
