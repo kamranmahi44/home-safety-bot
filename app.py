@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, jsonify
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -14,9 +15,17 @@ def home():
 body {
     background:#121212;
     color:white;
-    font-family:Arial;
+    font-family:Arial, sans-serif;
     text-align:center;
+    margin:0;
+    padding:0;
 }
+
+h2 {
+    margin-top:20px;
+    color:#00ffcc;
+}
+
 .chat-box {
     width:90%;
     max-width:500px;
@@ -24,34 +33,59 @@ body {
     background:#1e1e1e;
     padding:15px;
     border-radius:10px;
-    height:350px;
+    height:400px;
     overflow-y:auto;
+    text-align:left;
 }
+
+.message {
+    margin:8px 0;
+}
+
+.user {
+    color:#00ffcc;
+}
+
+.bot {
+    color:#ffffff;
+}
+
+.input-area {
+    margin-bottom:30px;
+}
+
 input {
-    width:70%;
+    width:65%;
     padding:10px;
     border-radius:5px;
     border:none;
+    outline:none;
 }
+
 button {
     padding:10px 15px;
     border:none;
     border-radius:5px;
     background:#00ffcc;
     cursor:pointer;
+    font-weight:bold;
 }
-.user { color:#00ffcc; }
-.bot { color:#ffffff; }
+
+button:hover {
+    background:#00ccaa;
+}
 </style>
 </head>
 <body>
 
-<h2>🏠 Home Safety Chatbot</h2>
+<h2>🏠 Smart Home Safety Bot</h2>
 
 <div class="chat-box" id="chat"></div>
 
-<input type="text" id="message" placeholder="Type your message...">
+<div class="input-area">
+<input type="text" id="message" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
 <button onclick="sendMessage()">Send</button>
+</div>
 
 <script>
 function sendMessage(){
@@ -59,7 +93,8 @@ function sendMessage(){
     if(msg === "") return;
 
     let chat = document.getElementById("chat");
-    chat.innerHTML += "<p class='user'><b>You:</b> " + msg + "</p>";
+
+    chat.innerHTML += "<div class='message user'><b>You:</b> " + msg + "</div>";
 
     fetch("/chat", {
         method:"POST",
@@ -68,7 +103,7 @@ function sendMessage(){
     })
     .then(res => res.json())
     .then(data=>{
-        chat.innerHTML += "<p class='bot'><b>Bot:</b> " + data.reply + "</p>";
+        chat.innerHTML += "<div class='message bot'><b>Bot:</b> " + data.reply + "</div>";
         chat.scrollTop = chat.scrollHeight;
     });
 
@@ -84,14 +119,37 @@ function sendMessage(){
 def chat():
     user_message = request.json.get("message", "").lower()
 
-    if "secure" in user_message:
-        reply = "System Secure ✅ No threats detected."
+    # Greetings
+    if any(word in user_message for word in ["hi", "hello", "hey"]):
+        reply = "Hello 👋 Welcome to your Smart Home Safety System!"
+
+    # Security
+    elif "secure" in user_message or "safety" in user_message:
+        reply = "All security systems are active ✅ Your home is fully protected."
+
+    # Alert mode
     elif "alert" in user_message:
-        reply = "Alert Mode Activated 🚨"
+        reply = "🚨 Alert Mode Activated! Monitoring all sensors closely."
+
+    # Status
     elif "status" in user_message:
-        reply = "All sensors working properly."
+        reply = "System Status: 🟢 All sensors operational. No threats detected."
+
+    # Camera
+    elif "camera" in user_message:
+        reply = "📷 Cameras are online and recording normally."
+
+    # Time
+    elif "time" in user_message:
+        now = datetime.now().strftime("%H:%M:%S")
+        reply = f"Current system time is {now}"
+
+    # Help
+    elif "help" in user_message:
+        reply = "You can ask about: security, alert, status, camera, or time."
+
     else:
-        reply = "I'm your Home Safety Bot. Ask about security or system status."
+        reply = "I'm your Smart Home Safety Bot 🤖 Type 'help' to see available commands."
 
     return jsonify({"reply": reply})
 
